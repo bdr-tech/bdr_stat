@@ -343,11 +343,13 @@ class _CourtWithPlayersState extends State<CourtWithPlayers>
                 ? Colors.amber
                 : null;
 
-    // 고정 크기 칩 — 파울 표시는 내부 오버레이
+    final playerName = player.name.split(' ').last;
+
+    // 고정 크기 칩 — 번호 + 이름 + 파울 오버레이
     final chip = Container(
-      width: 60,
-      height: 60,
-      margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
+      width: 64,
+      height: 64,
+      margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -373,15 +375,29 @@ class _CourtWithPlayersState extends State<CourtWithPlayers>
                     ? [BoxShadow(color: teamColor.withValues(alpha: 0.6), blurRadius: 10, spreadRadius: 2)]
                     : [BoxShadow(color: teamColor.withValues(alpha: 0.2), blurRadius: 4, spreadRadius: -1)],
               ),
-              child: Center(
-                child: Text(
-                  '${player.jerseyNumber ?? '-'}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                    color: isSelected ? Colors.white : isFouledOut ? AppTheme.errorColor : teamColor,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${player.jerseyNumber ?? '-'}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                      height: 1.1,
+                      color: isSelected ? Colors.white : isFouledOut ? AppTheme.errorColor : teamColor,
+                    ),
                   ),
-                ),
+                  Text(
+                    playerName,
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected ? Colors.white70 : AppTheme.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
           ),
