@@ -99,6 +99,73 @@ class _StarterSelectScreenState extends ConsumerState<StarterSelectScreen> {
     });
   }
 
+  Future<void> _showEditPlayerDialog(LocalTournamentPlayer player, bool isHome) async {
+    final nameController = TextEditingController(text: player.userName);
+    final numberController = TextEditingController(text: '${player.jerseyNumber ?? ''}');
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surfaceColor,
+        title: Text('#${player.jerseyNumber ?? '-'} ${player.userName}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: '선수 이름',
+                border: OutlineInputBorder(),
+              ),
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: numberController,
+              decoration: const InputDecoration(
+                labelText: '백넘버',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.number,
+              style: const TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('취소'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx, {
+                'name': nameController.text.trim(),
+                'number': int.tryParse(numberController.text.trim()),
+              });
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryColor),
+            child: const Text('저장'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && mounted) {
+      final db = ref.read(databaseProvider);
+      final newName = result['name'] as String?;
+      final newNumber = result['number'] as int?;
+
+      if (newName != null && newName.isNotEmpty) {
+        await db.tournamentDao.updatePlayerInfo(
+          player.id,
+          userName: newName,
+          jerseyNumber: newNumber,
+        );
+        await _loadData(); // 목록 새로고침
+      }
+    }
+  }
+
   bool _canStart() {
     return _homeStarters.length == 5 && _awayStarters.length == 5;
   }
@@ -213,26 +280,26 @@ class _StarterSelectScreenState extends ConsumerState<StarterSelectScreen> {
               players: _homePlayers,
               selectedIds: _homeStarters,
               isHome: true,
-              teamColor: const Color(0xFFF97316), // 오렌지
+              teamColor: const Color(0xFFF97316),
               onToggle: (id) => _toggleStarter(id, true),
+              onEdit: (player) => _showEditPlayerDialog(player, true),
             ),
           ),
 
-          // 구분선
           Container(
             width: 2,
             color: AppTheme.dividerColor,
           ),
 
-          // 원정팀
           Expanded(
             child: _TeamStarterPanel(
               team: _awayTeam,
               players: _awayPlayers,
               selectedIds: _awayStarters,
               isHome: false,
-              teamColor: const Color(0xFF10B981), // 에메랄드
+              teamColor: const Color(0xFF10B981),
               onToggle: (id) => _toggleStarter(id, false),
+              onEdit: (player) => _showEditPlayerDialog(player, false),
             ),
           ),
         ],
@@ -273,6 +340,7 @@ class _TeamStarterPanel extends StatelessWidget {
     required this.isHome,
     required this.teamColor,
     required this.onToggle,
+    this.onEdit,
   });
 
   final LocalTournamentTeam? team;
@@ -281,6 +349,7 @@ class _TeamStarterPanel extends StatelessWidget {
   final bool isHome;
   final Color teamColor;
   final void Function(int) onToggle;
+  final void Function(LocalTournamentPlayer player)? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -382,6 +451,7 @@ class _TeamStarterPanel extends StatelessWidget {
                 isSelected: isSelected,
                 teamColor: teamColor,
                 onTap: () => onToggle(player.id),
+                onEdit: onEdit,
               );
             },
           ),
@@ -398,12 +468,14 @@ class _PlayerCard extends StatelessWidget {
     required this.isSelected,
     required this.teamColor,
     required this.onTap,
+    this.onEdit,
   });
 
   final LocalTournamentPlayer player;
   final bool isSelected;
   final Color teamColor;
   final VoidCallback onTap;
+  final void Function(LocalTournamentPlayer player)? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -421,6 +493,7 @@ class _PlayerCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: onTap,
+        onLongPress: () => onEdit?.call(player),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12),

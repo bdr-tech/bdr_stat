@@ -119,6 +119,15 @@ class TournamentDao extends DatabaseAccessor<AppDatabase>
         ));
   }
 
+  Future<void> updatePlayerInfo(int playerId, {String? userName, int? jerseyNumber}) async {
+    await (update(localTournamentPlayers)
+          ..where((p) => p.id.equals(playerId)))
+        .write(LocalTournamentPlayersCompanion(
+          userName: userName != null ? Value(userName) : const Value.absent(),
+          jerseyNumber: jerseyNumber != null ? Value(jerseyNumber) : const Value.absent(),
+        ));
+  }
+
   // ═══════════════════════════════════════════════════════════════
   // Recent Tournaments
   // ═══════════════════════════════════════════════════════════════
