@@ -100,7 +100,7 @@ class _StarterSelectScreenState extends ConsumerState<StarterSelectScreen> {
   }
 
   Future<void> _showEditPlayerDialog(LocalTournamentPlayer player, bool isHome) async {
-    final nameController = TextEditingController(text: player.userName);
+    final nameController = TextEditingController(text: player.userNickname ?? player.userName);
     final numberController = TextEditingController(text: '${player.jerseyNumber ?? ''}');
 
     final result = await showDialog<Map<String, dynamic>>(
@@ -547,7 +547,7 @@ class _PlayerCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      player.userName,
+                      player.userNickname ?? player.userName,
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
                         fontSize: 16,

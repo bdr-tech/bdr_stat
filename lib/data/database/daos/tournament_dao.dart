@@ -124,6 +124,7 @@ class TournamentDao extends DatabaseAccessor<AppDatabase>
           ..where((p) => p.id.equals(playerId)))
         .write(LocalTournamentPlayersCompanion(
           userName: userName != null ? Value(userName) : const Value.absent(),
+          userNickname: userName != null ? Value(userName) : const Value.absent(),
           jerseyNumber: jerseyNumber != null ? Value(jerseyNumber) : const Value.absent(),
         ));
   }
